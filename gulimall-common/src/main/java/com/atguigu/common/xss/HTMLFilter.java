@@ -152,6 +152,7 @@ public final class HTMLFilter {
      *
      * @param conf map containing configuration. keys match field names.
      */
+    @SuppressWarnings("unchecked")  // 这个注解可不好，一些可能存在的异常都在编译期压制住了
     public HTMLFilter(final Map<String,Object> conf) {
 
         assert conf.containsKey("vAllowed") : "configuration requires vAllowed";
