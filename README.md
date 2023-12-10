@@ -1,1 +1,1 @@
-# gulimall2
+# gulimall
