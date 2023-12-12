@@ -1,15 +1,19 @@
-server:
-  port: 80
-
-# mysql
 spring:
   datasource:
-    type: com.alibaba.druid.pool.DruidDataSource
+    #    type: com.alibaba.druid.pool.DruidDataSource
     #MySQL配置
     driverClassName: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/gulimall_sms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: root
+
+mybatis-plus:
+  mapperLocations: classpath:mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: auto
+    #    type: com.alibaba.druid.pool.DruidDataSource
+    #MySQL配置
     #oracle配置
     #    driverClassName: oracle.jdbc.OracleDriver
     #    url: jdbc:oracle:thin:@47.100.206.162:1521:xe
@@ -27,12 +31,12 @@ spring:
   #    password: 123456
 
 
-
-  jackson:
-    time-zone: GMT+8
-    date-format: yyyy-MM-dd HH:mm:ss
-  resources:
-    static-locations: classpath:/static/,classpath:/views/
+#
+#  jackson:
+#    time-zone: GMT+8
+#    date-format: yyyy-MM-dd HH:mm:ss
+#  resources:
+#    static-locations: classpath:/static/,classpath:/views/
 
 #mongodb:
 #  host: localhost
@@ -43,17 +47,16 @@ spring:
 #  source: 123456
 #  database: test
 
-mybatis-plus:
-  mapperLocations: classpath:mapper/**/*.xml
 
 
-pagehelper:
-  reasonable: true
-  supportMethodsArguments: true
-  params: count=countSql
+
+#pagehelper:
+#  reasonable: true
+#  supportMethodsArguments: true
+#  params: count=countSql
 
 
 #指定数据库，可选值有【mysql、oracle、sqlserver、postgresql、mongodb】
-renren:
-  database: mysql
+#renren:
+#  database: mysql
 
