@@ -6,6 +6,12 @@ spring:
     url: jdbc:mysql://localhost:3306/gulimall_pms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: root
+
+mybatis-plus:
+  mapperLocations: classpath:mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: auto
 #    type: com.alibaba.druid.pool.DruidDataSource
     #MySQL配置
     #oracle配置
@@ -41,8 +47,7 @@ spring:
 #  source: 123456
 #  database: test
 
-mybatis-plus:
-  mapperLocations: classpath:mapper/**/*.xml
+
 
 
 pagehelper:
