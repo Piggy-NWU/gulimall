@@ -12,6 +12,9 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: auto
+
+server:
+  port: 10000
 #    type: com.alibaba.druid.pool.DruidDataSource
     #MySQL配置
     #oracle配置
