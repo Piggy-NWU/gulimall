@@ -51,15 +51,29 @@
             <version>2.5</version>
             <scope>provided</scope>
         </dependency>
+
+        <!--服务注册/发现-->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
         </dependency>
+        <!--配置中心做配置管理-->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+
+<!-- 有评论需要加这个pom，但是我的不加也能行。       <dependency>-->
+<!--            <groupId>org.springframework.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-starter-bootstrap</artifactId>-->
+<!--            <version>3.0.1</version>-->
+<!--        </dependency>-->
 
     </dependencies>
 
     <dependencyManagement>
         <dependencies>
+            <!--好像是有了这个以后，上面相关的alibaba插件都不用再配置版本了-->
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-alibaba-dependencies</artifactId>
