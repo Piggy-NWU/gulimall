@@ -11,6 +11,14 @@ spring:
           uri: https://www.qq.com
           predicates:
             - Query=url,qq
+
+        - id: product_route
+          uri: lb://gulimall-product
+          predicates:
+            - Path=/api/product/**    # 属于admin_route的子集，谁在前，优先匹配谁。
+          filters:
+            - RewritePath=/api/(?<segment>.*),/$\{segment}  # 这个是重写路径。 具体的可以百度一下nacos路径重写
+
         - id: admin_route
           uri: lb://renren-fast   #表示使用负载均衡服务，转发到renren-fast服务。
           predicates:
@@ -18,3 +26,4 @@ spring:
           filters:
             - RewritePath=/api/(?<segment>.*),/renren-fast/$\{segment}  # 这个是重写路径。 具体的可以百度一下nacos路径重写
 ## 前端项目，发来的请求都带/api前缀,目前全部默认到renren-fast
+
