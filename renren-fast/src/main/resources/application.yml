@@ -8,7 +8,7 @@ server:
     connection-timeout: 5000ms
   port: 8080
   servlet:
-    context-path: /renren-fast
+    context-path: /renren-fast    # 代表 localhost:8080/renren-fast/xxx 才能访问到。 所有请求都必须加的根路径。
 
 spring:
   # 环境 dev|test|prod
