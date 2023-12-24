@@ -2,6 +2,7 @@ package com.atguigu.gulimall.product.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
@@ -42,6 +43,7 @@ public class CategoryEntity implements Serializable {
     /**
      * 是否显示[0-不显示，1显示]
      */
+    @TableLogic(value = "1", delval = "0")  //  加上该注解后，表示使用该字段进行逻辑删除. value表示定制该字段的逻辑删除规则
     private Integer showStatus;
     /**
      * 排序
