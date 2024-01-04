@@ -26,6 +26,13 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
+<!--        无需使用原生的。 alibaba-cloud已经集成了这一套 -->
+<!--        <dependency>-->
+<!--            <groupId>com.aliyun.oss</groupId>-->
+<!--            <artifactId>aliyun-sdk-oss</artifactId>-->
+<!--            <version>3.15.1</version>-->
+<!--        </dependency>-->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>

@@ -10,7 +10,14 @@ spring:
     nacos:
       discovery:
         server-addr: localhost:8848
-  # 给本服务命名，在注册中心(nacos)中就有对应的服务名了
+    alicloud:
+      access-key: LTAI5tPYUXLdjS36fqR5fMPp
+      secret-key: 2o387fEHIpSsBjqcVz36WaI9RElEo6
+      oss:
+        endpoint:  oss-cn-beijing.aliyuncs.com
+
+
+  # 给本服务命名，在注册中心(nacos)中就有对应的服务名了.但是这里也得有，我记得不配也会出错。
   application:
     name: gulimall-product
 
