@@ -19,11 +19,19 @@ spring:
           filters:
             - RewritePath=/api/(?<segment>.*),/$\{segment}  # 这个是重写路径。 具体的可以百度一下nacos路径重写
 
+        - id: third_party_route
+          uri: lb://gulimall-third-party
+          predicates:
+            - Path=/api/thirdparty/**
+          filters:
+            - RewritePath=/api/thirdparty/(?<segment>.*),/$\{segment}
+
         - id: admin_route
           uri: lb://renren-fast   #表示使用负载均衡服务，转发到renren-fast服务。
           predicates:
             - Path=/api/**
           filters:
             - RewritePath=/api/(?<segment>.*),/renren-fast/$\{segment}  # 这个是重写路径。 具体的可以百度一下nacos路径重写
+
 ## 前端项目，发来的请求都带/api前缀,目前全部默认到renren-fast
 
