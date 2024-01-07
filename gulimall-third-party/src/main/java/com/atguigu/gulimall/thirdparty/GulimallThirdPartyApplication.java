@@ -12,4 +12,5 @@ public class GulimallThirdPartyApplication {
         SpringApplication.run(GulimallThirdPartyApplication.class, args);
     }
 
+
 }
