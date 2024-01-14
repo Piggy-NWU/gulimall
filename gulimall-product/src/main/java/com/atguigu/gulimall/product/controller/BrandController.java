@@ -1,12 +1,10 @@
 package com.atguigu.gulimall.product.controller;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import com.atguigu.gulimall.product.entity.BrandEntity;
@@ -27,7 +25,7 @@ import javax.validation.Valid;
  * 1)、给Bean类(entity类)添加校验注解 @NotBlank  @NotEmpty—— javax.validation.constraints,并定义自己的message提示
  * 2)、在开启校验功能@Valid. PostMapping的参数前添加@Valid注解.会有默认的错误响应。
  * 3)、给校验的bean后紧跟一个BindingResult，就可以获取到校验的结果。
- * 4)、
+ * 4)、使用统一异常处理 @ControllerAdvice,  AOP切面编程。
  */
 @RestController
 @RequestMapping("product/brand")
@@ -63,20 +61,20 @@ public class BrandController {
      */
     @PostMapping("/save")
 //    @RequiresPermissions("product:brand:save")
-    public R save(@Valid @RequestBody BrandEntity brand, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            Map<String, String> map = new HashMap<>();
-            bindingResult.getFieldErrors().forEach(item -> {
-                // 获取错误提示
-                String message = item.getDefaultMessage();
-                // 获取错误的属性名字
-                String field = item.getField();
-                map.put(field, message);
-            });
-            return R.error(400, "提交的数据不合法").put("data", map);
-        } else {
-            brandService.save(brand);
-        }
+    public R save(@Valid @RequestBody BrandEntity brand) {
+//        if (bindingResult.hasErrors()) {
+//            Map<String, String> map = new HashMap<>();
+//            bindingResult.getFieldErrors().forEach(item -> {
+//                // 获取错误提示
+//                String message = item.getDefaultMessage();
+//                // 获取错误的属性名字
+//                String field = item.getField();
+//                map.put(field, message);
+//            });
+//            return R.error(400, "提交的数据不合法").put("data", map);
+//        } else {
+//        }
+        brandService.save(brand);
 
         return R.ok();
     }
