@@ -1,3 +1,7 @@
+CREATE DATABASE /*!32312 IF NOT EXISTS*/`gulimall_sms` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
+
+USE `gulimall_sms`;
+
 drop table if exists sms_coupon;
 
 drop table if exists sms_coupon_history;

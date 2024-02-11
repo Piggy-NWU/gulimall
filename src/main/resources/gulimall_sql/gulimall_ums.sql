@@ -1,3 +1,7 @@
+CREATE DATABASE /*!32312 IF NOT EXISTS*/`gulimall_ums` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
+
+USE `gulimall_ums`;
+
 drop table if exists ums_growth_change_history;
 
 drop table if exists ums_integration_change_history;

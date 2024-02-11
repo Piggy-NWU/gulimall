@@ -1,3 +1,7 @@
+CREATE DATABASE /*!32312 IF NOT EXISTS*/`gulimall_oms` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
+
+USE `gulimall_oms`;
+
 drop table if exists oms_order;
 
 drop table if exists oms_order_item;
