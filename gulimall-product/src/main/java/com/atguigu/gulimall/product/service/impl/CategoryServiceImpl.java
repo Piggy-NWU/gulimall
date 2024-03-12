@@ -69,4 +69,16 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         // 推荐使用逻辑删除，目前的删除方式直接是屋里删除
         baseMapper.deleteBatchIds(list);
     }
+
+    @Override
+    public Long[] findCatelogPath(Long catelogId) {
+        List<Long> paths = new ArrayList<>();
+
+        return new Long[0];
+    }
+
+    private List<Long> findParentPath(Long catelogId) {
+        CategoryEntity byId = this.getById(catelogId);
+
+    }
 }
