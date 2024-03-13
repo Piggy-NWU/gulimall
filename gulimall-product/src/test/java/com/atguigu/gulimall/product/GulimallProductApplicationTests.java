@@ -3,6 +3,8 @@ package com.atguigu.gulimall.product;
 import com.aliyun.oss.OSSClient;
 import com.atguigu.gulimall.product.entity.BrandEntity;
 import com.atguigu.gulimall.product.service.BrandService;
+import com.atguigu.gulimall.product.service.CategoryService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -13,13 +15,23 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Arrays;
 
-
+@Slf4j
 @SpringBootTest
 @RunWith(SpringRunner.class)
 public class GulimallProductApplicationTests {
     @Autowired
     BrandService brandService;
+
+    @Autowired
+    CategoryService categoryService;
+
+    @Test
+    public void testFindPath() {
+        Long[] catelogPath = categoryService.findCatelogPath(225L);
+        log.info("完整路径：{}", Arrays.asList(catelogPath));
+    }
 
     @Test
     public void contextContent() {

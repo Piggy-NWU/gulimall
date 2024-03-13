@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -72,13 +73,19 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Override
     public Long[] findCatelogPath(Long catelogId) {
-        List<Long> paths = new ArrayList<>();
-
-        return new Long[0];
+        List<Long> paths = findParentPath(catelogId);
+        return paths.toArray(new Long[paths.size()]);
     }
 
-    private List<Long> findParentPath(Long catelogId) {
-        CategoryEntity byId = this.getById(catelogId);
 
+    private List<Long> findParentPath(Long catelogId) {
+        List<Long> paths = new ArrayList<>();
+        while (catelogId != 0) {
+            paths.add(catelogId);
+            CategoryEntity entity = this.getById(catelogId);
+            catelogId = entity.getParentCid();
+        }
+        Collections.reverse(paths);
+        return paths;
     }
 }
