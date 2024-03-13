@@ -26,13 +26,8 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.atguigu.gulimall</groupId>
-            <artifactId>gulimall-third-party</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
         <!--        无需使用原生的。 alibaba-cloud已经集成了这一套 -->
+        <!--        最终无需在这里实现，放在third-party中， 通过http接口提供服务-->
         <!--        <dependency>-->
         <!--            <groupId>com.aliyun.oss</groupId>-->
         <!--            <artifactId>aliyun-sdk-oss</artifactId>-->
