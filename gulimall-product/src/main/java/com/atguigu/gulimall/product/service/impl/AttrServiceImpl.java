@@ -74,8 +74,10 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
     // 代码太长了，不是好代码。 需要修改下
     @Override
-    public PageUtils queryBaseAttrPage(Map<String, Object> params, Long catelogId) {
+    public PageUtils queryBaseAttrPage(Map<String, Object> params, Long catelogId, String type) {
         QueryWrapper<AttrEntity> wrapper = new QueryWrapper<>();
+        int attrType = "base".equalsIgnoreCase(type) ? 1 : 0;
+        wrapper.eq("attr_type", attrType);
         if (catelogId != 0) {
             wrapper = wrapper.eq("catelog_id", catelogId);
         }
@@ -104,12 +106,14 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
             }
 
             // 设置分类名称。先查询属性和分组的关联关系，找到对应分组的id,然后再去分组表中找名字。
-            QueryWrapper<AttrAttrgroupRelationEntity> queryWrapper = new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrResponseVo.getAttrId());
-            // TODO: 2024/3/17  这块应该有意这么写的， 属性和属性分组是多对多关系，不过当前没有数据，这么写不会错。
-            AttrAttrgroupRelationEntity attrAttrgroupRelationEntitie = attrAttrgroupRelationDao.selectOne(queryWrapper);
-            if (attrAttrgroupRelationEntitie != null) {
-                AttrGroupEntity attrGroupEntity = attrGroupDao.selectById(attrAttrgroupRelationEntitie.getAttrGroupId());
-                attrResponseVo.setGroupName(attrGroupEntity.getAttrGroupName());
+            if ("base".equalsIgnoreCase(type)) {
+                QueryWrapper<AttrAttrgroupRelationEntity> queryWrapper = new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrResponseVo.getAttrId());
+                // TODO: 2024/3/17  这块应该有意这么写的， 属性和属性分组是多对多关系，不过当前没有数据，这么写不会错。需要再确认下，按老师的意思，属性和属性分组是一对多。
+                AttrAttrgroupRelationEntity attrAttrgroupRelationEntitie = attrAttrgroupRelationDao.selectOne(queryWrapper);
+                if (attrAttrgroupRelationEntitie != null) {
+                    AttrGroupEntity attrGroupEntity = attrGroupDao.selectById(attrAttrgroupRelationEntitie.getAttrGroupId());
+                    attrResponseVo.setGroupName(attrGroupEntity.getAttrGroupName());
+                }
             }
             return attrResponseVo;
         }).collect(Collectors.toList());

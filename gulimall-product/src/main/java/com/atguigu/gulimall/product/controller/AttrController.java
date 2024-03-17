@@ -28,7 +28,6 @@ public class AttrController {
     @Autowired
     private AttrService attrService;
 
-
     @GetMapping("/info/{attrId}")
     public R getAttrInfo(@PathVariable("attrId") Long attrId) {
         AttrResponseVo attrResponseVo = attrService.getAttrInfo(attrId);
@@ -36,9 +35,12 @@ public class AttrController {
 
     }
 
-    @GetMapping("/base/list/{catelogId}")
-    public R baseAttrList(@RequestParam Map<String, Object> params, @PathVariable("catelogId") Long catelogId) {
-        PageUtils page = attrService.queryBaseAttrPage(params, catelogId);
+    // type为base代表规格属性
+    // type为sale代表销售属性
+    @GetMapping("/{type}/list/{catelogId}")
+    public R baseAttrList(@RequestParam Map<String, Object> params, @PathVariable("type") String type, @PathVariable("catelogId") Long catelogId) {
+
+        PageUtils page = attrService.queryBaseAttrPage(params, catelogId, type);
         return R.ok().put("page", page);
     }
 
