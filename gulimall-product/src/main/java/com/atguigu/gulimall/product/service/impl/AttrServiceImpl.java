@@ -1,13 +1,21 @@
 package com.atguigu.gulimall.product.service.impl;
 
 import com.atguigu.gulimall.product.dao.AttrAttrgroupRelationDao;
+import com.atguigu.gulimall.product.dao.AttrGroupDao;
+import com.atguigu.gulimall.product.dao.CategoryDao;
 import com.atguigu.gulimall.product.entity.AttrAttrgroupRelationEntity;
-import com.atguigu.gulimall.product.vo.AttrVo;
+import com.atguigu.gulimall.product.entity.AttrGroupEntity;
+import com.atguigu.gulimall.product.entity.CategoryEntity;
+import com.atguigu.gulimall.product.vo.request.AttrVo;
+import com.atguigu.gulimall.product.vo.response.AttrResponseVo;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -25,6 +33,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements AttrService {
 
     @Autowired
+    AttrGroupDao attrGroupDao;
+
+
+    @Autowired
+    CategoryDao categoryDao;
+
+    @Autowired
     AttrAttrgroupRelationDao attrAttrgroupRelationDao;
 
     @Override
@@ -36,7 +51,6 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
         return new PageUtils(page);
     }
-
 
 
     @Transactional
@@ -51,6 +65,53 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         attrAttrgroupRelationEntity.setAttrGroupId(attr.getAttrGroupId());
         attrAttrgroupRelationEntity.setAttrId(attrEntity.getAttrId());
         attrAttrgroupRelationDao.insert(attrAttrgroupRelationEntity);
+    }
+
+    // 代码太长了，不是好代码。 需要修改下
+    @Override
+    public PageUtils queryBaseAttrPage(Map<String, Object> params, Long catelogId) {
+        QueryWrapper<AttrEntity> wrapper = new QueryWrapper<>();
+        if (catelogId != 0) {
+            wrapper = wrapper.eq("catelog_id", catelogId);
+        }
+
+        // TODO: 2024/3/17   像这类代码，都存在null exception的风险，理应考虑好
+        String key = (String) params.get("key");
+        if (StringUtils.isNotEmpty(key)) {
+            wrapper = wrapper.and((wq) -> {
+                wq.eq("attr_id", key).or().like("attr_name", key);
+            });
+        }
+
+        IPage<AttrEntity> page = this.page(
+                new Query<AttrEntity>().getPage(params),
+                wrapper
+        );
+
+        List<AttrEntity> records = page.getRecords();
+        List<AttrResponseVo> attrResponseVos = records.stream().map((record) -> {
+            AttrResponseVo attrResponseVo = new AttrResponseVo();
+            BeanUtils.copyProperties(record, attrResponseVo);
+            // 设置分组名称，用分组id去查。
+            CategoryEntity categoryEntity = categoryDao.selectById(attrResponseVo.getCatelogId());
+            if (categoryEntity != null) {
+                attrResponseVo.setCatelogName(categoryEntity.getName());
+            }
+
+            // 设置分类名称。先查询属性和分组的关联关系，找到对应分组的id,然后再去分组表中找名字。
+            QueryWrapper<AttrAttrgroupRelationEntity> queryWrapper = new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrResponseVo.getAttrId());
+            // TODO: 2024/3/17  这块应该有意这么写的， 属性和属性分组是多对多关系，不过当前没有数据，这么写不会错。
+            AttrAttrgroupRelationEntity attrAttrgroupRelationEntitie = attrAttrgroupRelationDao.selectOne(queryWrapper);
+            if (attrAttrgroupRelationEntitie != null) {
+                AttrGroupEntity attrGroupEntity = attrGroupDao.selectById(attrAttrgroupRelationEntitie.getAttrGroupId());
+                attrResponseVo.setGroupName(attrGroupEntity.getAttrGroupName());
+            }
+            return attrResponseVo;
+        }).collect(Collectors.toList());
+
+        PageUtils pageUtils = new PageUtils(page);
+        pageUtils.setList(attrResponseVos);
+        return pageUtils;
     }
 
 }
