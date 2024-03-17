@@ -25,7 +25,7 @@ public class AttrAttrgroupRelationEntity implements Serializable {
 	@TableId
 	private Long id;
 	/**
-	 * 属性id
+	 * 属性id.  mybatis-plus 会将驼峰默认映射成attr_id 无需处理。
 	 */
 	private Long attrId;
 	/**

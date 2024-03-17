@@ -6,8 +6,10 @@ import com.atguigu.gulimall.product.dao.CategoryDao;
 import com.atguigu.gulimall.product.entity.AttrAttrgroupRelationEntity;
 import com.atguigu.gulimall.product.entity.AttrGroupEntity;
 import com.atguigu.gulimall.product.entity.CategoryEntity;
+import com.atguigu.gulimall.product.service.CategoryService;
 import com.atguigu.gulimall.product.vo.request.AttrVo;
 import com.atguigu.gulimall.product.vo.response.AttrResponseVo;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,9 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
     @Autowired
     AttrAttrgroupRelationDao attrAttrgroupRelationDao;
+
+    @Autowired
+    CategoryService categoryService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -112,6 +117,51 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         PageUtils pageUtils = new PageUtils(page);
         pageUtils.setList(attrResponseVos);
         return pageUtils;
+    }
+
+    @Override
+    public AttrResponseVo getAttrInfo(Long attrId) {
+        AttrResponseVo attrResponseVo = new AttrResponseVo();
+        AttrEntity attrEntity = this.getById(attrId);
+        BeanUtils.copyProperties(attrEntity, attrResponseVo);
+
+        //需要找到分组id，以及分类路径
+
+        // 设置分组id
+        AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = attrAttrgroupRelationDao.selectOne(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrId));
+        if (attrAttrgroupRelationEntity != null) {
+            Long attrGroupId = attrAttrgroupRelationEntity.getAttrGroupId();
+            attrResponseVo.setAttrGroupId(attrGroupId);
+        }
+
+        // 设置分类路径
+        Long catelogId = attrEntity.getCatelogId();
+        Long[] catelogPath = categoryService.findCatelogPath(catelogId);
+        attrResponseVo.setCatelogPath(catelogPath);
+        return attrResponseVo;
+    }
+
+    @Transactional
+    @Override
+    public void updateAttr(AttrVo attrVo) {
+        AttrEntity attrEntity = new AttrEntity();
+        BeanUtils.copyProperties(attrVo, attrEntity);
+        this.updateById(attrEntity);
+
+        // TODO: 2024/3/17  关联更新
+        AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = new AttrAttrgroupRelationEntity();
+        attrAttrgroupRelationEntity.setAttrGroupId(attrVo.getAttrGroupId());
+        attrAttrgroupRelationEntity.setAttrId(attrVo.getAttrId());
+
+        Integer count = attrAttrgroupRelationDao.selectCount(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrVo.getAttrId()));
+        if (count > 0) {
+            // TODO: 2024/3/17  这里感觉埋的有坑，属性和属性分组对应关系是？？？如果是多对多，这里有问题啊。   如果属性只能对应一个分组，这里就无所谓了。
+            UpdateWrapper<AttrAttrgroupRelationEntity> wrapper = new UpdateWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrVo.getAttrId());
+            attrAttrgroupRelationDao.update(attrAttrgroupRelationEntity, wrapper);
+        } else {
+            attrAttrgroupRelationDao.insert(attrAttrgroupRelationEntity);
+        }
+
     }
 
 }
