@@ -1,5 +1,6 @@
 package com.atguigu.gulimall.product.service.impl;
 
+import com.atguigu.common.constant.ProductConstant.AttrEnum;
 import com.atguigu.gulimall.product.dao.AttrAttrgroupRelationDao;
 import com.atguigu.gulimall.product.dao.AttrGroupDao;
 import com.atguigu.gulimall.product.dao.CategoryDao;
@@ -65,18 +66,22 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         BeanUtils.copyProperties(attr, attrEntity);
         this.save(attrEntity);
 
-        // 保存关联关系
-        AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = new AttrAttrgroupRelationEntity();
-        attrAttrgroupRelationEntity.setAttrGroupId(attr.getAttrGroupId());
-        attrAttrgroupRelationEntity.setAttrId(attrEntity.getAttrId());
-        attrAttrgroupRelationDao.insert(attrAttrgroupRelationEntity);
+        // 基本属性才存储关联关系。 销售属性不涉及。
+        if (attr.getAttrType() == AttrEnum.ATTR_TYPE_BASE.getCode()) {
+            // 保存关联关系
+            AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = new AttrAttrgroupRelationEntity();
+            attrAttrgroupRelationEntity.setAttrGroupId(attr.getAttrGroupId());
+            attrAttrgroupRelationEntity.setAttrId(attrEntity.getAttrId());
+            attrAttrgroupRelationDao.insert(attrAttrgroupRelationEntity);
+        }
     }
 
     // 代码太长了，不是好代码。 需要修改下
     @Override
     public PageUtils queryBaseAttrPage(Map<String, Object> params, Long catelogId, String type) {
         QueryWrapper<AttrEntity> wrapper = new QueryWrapper<>();
-        int attrType = "base".equalsIgnoreCase(type) ? 1 : 0;
+        int attrType = "base".equalsIgnoreCase(type) ?
+                AttrEnum.ATTR_TYPE_BASE.getCode() : AttrEnum.ATTR_TYPE_SALE.getCode();
         wrapper.eq("attr_type", attrType);
         if (catelogId != 0) {
             wrapper = wrapper.eq("catelog_id", catelogId);
@@ -130,12 +135,13 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         BeanUtils.copyProperties(attrEntity, attrResponseVo);
 
         //需要找到分组id，以及分类路径
-
-        // 设置分组id
-        AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = attrAttrgroupRelationDao.selectOne(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrId));
-        if (attrAttrgroupRelationEntity != null) {
-            Long attrGroupId = attrAttrgroupRelationEntity.getAttrGroupId();
-            attrResponseVo.setAttrGroupId(attrGroupId);
+        if (attrEntity.getAttrType() == AttrEnum.ATTR_TYPE_BASE.getCode()) {
+            // 设置分组id (分组信息)
+            AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = attrAttrgroupRelationDao.selectOne(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrId));
+            if (attrAttrgroupRelationEntity != null) {
+                Long attrGroupId = attrAttrgroupRelationEntity.getAttrGroupId();
+                attrResponseVo.setAttrGroupId(attrGroupId);
+            }
         }
 
         // 设置分类路径
@@ -152,18 +158,20 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         BeanUtils.copyProperties(attrVo, attrEntity);
         this.updateById(attrEntity);
 
-        // TODO: 2024/3/17  关联更新
-        AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = new AttrAttrgroupRelationEntity();
-        attrAttrgroupRelationEntity.setAttrGroupId(attrVo.getAttrGroupId());
-        attrAttrgroupRelationEntity.setAttrId(attrVo.getAttrId());
+        // TODO: 2024/3/17  关联更新. 只有基本属性才进行关联更新，销售属性不涉及。
+        if (attrEntity.getAttrType() == AttrEnum.ATTR_TYPE_BASE.getCode()) {
+            AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = new AttrAttrgroupRelationEntity();
+            attrAttrgroupRelationEntity.setAttrGroupId(attrVo.getAttrGroupId());
+            attrAttrgroupRelationEntity.setAttrId(attrVo.getAttrId());
 
-        Integer count = attrAttrgroupRelationDao.selectCount(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrVo.getAttrId()));
-        if (count > 0) {
-            // TODO: 2024/3/17  这里感觉埋的有坑，属性和属性分组对应关系是？？？如果是多对多，这里有问题啊。   如果属性只能对应一个分组，这里就无所谓了。
-            UpdateWrapper<AttrAttrgroupRelationEntity> wrapper = new UpdateWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrVo.getAttrId());
-            attrAttrgroupRelationDao.update(attrAttrgroupRelationEntity, wrapper);
-        } else {
-            attrAttrgroupRelationDao.insert(attrAttrgroupRelationEntity);
+            Integer count = attrAttrgroupRelationDao.selectCount(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrVo.getAttrId()));
+            if (count > 0) {
+                // TODO: 2024/3/17  这里感觉埋的有坑，属性和属性分组对应关系是？？？如果是多对多，这里有问题啊。   如果属性只能对应一个分组，这里就无所谓了。
+                UpdateWrapper<AttrAttrgroupRelationEntity> wrapper = new UpdateWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrVo.getAttrId());
+                attrAttrgroupRelationDao.update(attrAttrgroupRelationEntity, wrapper);
+            } else {
+                attrAttrgroupRelationDao.insert(attrAttrgroupRelationEntity);
+            }
         }
 
     }
