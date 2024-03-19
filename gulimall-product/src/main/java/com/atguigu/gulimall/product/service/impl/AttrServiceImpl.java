@@ -16,8 +16,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -176,4 +175,22 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
     }
 
+    @Override
+    public List<AttrResponseVo> queryRelationAttr(Long attrGroupId) {
+        List<AttrAttrgroupRelationEntity> relationEntities = attrAttrgroupRelationDao.selectList(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_group_id", attrGroupId));
+        List<Long> attrIdList = relationEntities.stream()
+                .map(AttrAttrgroupRelationEntity::getAttrId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Collection<AttrEntity> attrEntities = this.listByIds(attrIdList);
+        List<AttrResponseVo> result = new ArrayList<>();
+        for (AttrEntity attrEntity : attrEntities) {
+            AttrResponseVo attrResponseVo = new AttrResponseVo();
+            BeanUtils.copyProperties(attrEntity, attrResponseVo);
+            result.add(attrResponseVo);
+        }
+
+        return result;
+    }
 }
