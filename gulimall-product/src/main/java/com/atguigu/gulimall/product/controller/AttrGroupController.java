@@ -35,9 +35,25 @@ public class AttrGroupController {
     @Autowired
     private AttrService attrService;
 
+    /**
+     * 获取本分组可以关联的属性。
+     * 1、必须属于同一个分类
+     * 2、该属性必须没有被其他分组使用
+     */
+    @GetMapping("/{attrgroupId}/noattr/relation")
+    public R getNoRelation(@PathVariable("attrgroupId") Long attrgroupId,
+                           @RequestParam Map<String, Object> params) {
+        PageUtils page = attrService.getNoRelationAttr(params, attrgroupId);
+        return R.ok().put("page", page);
+    }
+
+
+    /**
+     * 查询分组关联的属性
+     */
     @GetMapping("/{attrgroupId}/attr/relation")
     public R getRelation(@PathVariable("attrgroupId") Long attrGroupId) {
-        List<AttrResponseVo> result = attrService.queryRelationAttr(attrGroupId);
+        List<AttrResponseVo> result = attrService.getRelationAttr(attrGroupId);
         return R.ok().put("data", result);
     }
 

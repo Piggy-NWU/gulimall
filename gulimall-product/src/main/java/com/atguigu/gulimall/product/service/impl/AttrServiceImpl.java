@@ -176,7 +176,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
     }
 
     @Override
-    public List<AttrResponseVo> queryRelationAttr(Long attrGroupId) {
+    public List<AttrResponseVo> getRelationAttr(Long attrGroupId) {
         List<AttrAttrgroupRelationEntity> relationEntities = attrAttrgroupRelationDao.selectList(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_group_id", attrGroupId));
         List<Long> attrIdList = relationEntities.stream()
                 .map(AttrAttrgroupRelationEntity::getAttrId)
@@ -193,5 +193,45 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         }
 
         return result;
+    }
+
+
+    /**
+     * 获取当前分组，没有关联的所有属性
+     * 1、获取所有属于同一分组的属性
+     * 2、将所有属性从pms_attr_attgroup 中过滤出来，剩下的就是没有关联过的
+     * 3、返回结果
+     */
+    @Override
+    public PageUtils getNoRelationAttr(Map<String, Object> params, Long attrgroupId) {
+        AttrGroupEntity attrGroupEntity = attrGroupDao.selectById(attrgroupId);
+        Long catelogId = attrGroupEntity.getCatelogId();
+        QueryWrapper<AttrGroupEntity> queryWrapper = new QueryWrapper<AttrGroupEntity>()
+                .eq("catelog_id", catelogId);
+        List<AttrGroupEntity> attrGroupEntities = attrGroupDao.selectList(queryWrapper);
+
+        List<Long> otherAttrGroupId = attrGroupEntities.stream()
+                .map(item -> item.getAttrGroupId()).collect(Collectors.toList());
+
+
+        QueryWrapper<AttrAttrgroupRelationEntity> relationQueryWrapper =
+                new QueryWrapper<AttrAttrgroupRelationEntity>().in("attr_group_id", otherAttrGroupId);
+        List<AttrAttrgroupRelationEntity> attrAttrgroupRelationEntities = attrAttrgroupRelationDao.selectList(relationQueryWrapper);
+        List<Long> AttrIdOfOtherGroup = attrAttrgroupRelationEntities.stream()
+                .map(item -> item.getAttrId())
+                .collect(Collectors.toList());
+
+
+        QueryWrapper<AttrEntity> attrQueryWrapper = new QueryWrapper<AttrEntity>().eq("catelog_id", catelogId);
+        attrQueryWrapper = AttrIdOfOtherGroup.size() > 0 ? attrQueryWrapper.notIn("attr_id", AttrIdOfOtherGroup) : attrQueryWrapper;
+
+        String key = (String) params.get("key");
+        if (StringUtils.isNotEmpty(key)) {
+            attrQueryWrapper.and(w -> w.eq("attr_id", key).or().like("attr_name", key));
+        }
+
+        IPage<AttrEntity> page = this.page(new Query<AttrEntity>().getPage(params), attrQueryWrapper);
+
+        return new PageUtils(page);
     }
 }
