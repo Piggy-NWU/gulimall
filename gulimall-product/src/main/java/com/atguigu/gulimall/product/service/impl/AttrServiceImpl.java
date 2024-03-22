@@ -182,13 +182,14 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
                 .map(AttrAttrgroupRelationEntity::getAttrId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-
-        Collection<AttrEntity> attrEntities = this.listByIds(attrIdList);
         List<AttrResponseVo> result = new ArrayList<>();
-        for (AttrEntity attrEntity : attrEntities) {
-            AttrResponseVo attrResponseVo = new AttrResponseVo();
-            BeanUtils.copyProperties(attrEntity, attrResponseVo);
-            result.add(attrResponseVo);
+        if (!attrIdList.isEmpty()) {
+            Collection<AttrEntity> attrEntities = this.listByIds(attrIdList);
+            for (AttrEntity attrEntity : attrEntities) {
+                AttrResponseVo attrResponseVo = new AttrResponseVo();
+                BeanUtils.copyProperties(attrEntity, attrResponseVo);
+                result.add(attrResponseVo);
+            }
         }
 
         return result;

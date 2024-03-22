@@ -63,7 +63,8 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
                     return relationEntity;
                 })
                 .collect(Collectors.toList());
-        this.baseMapper.delete()
+
+        attrGroupRelationDao.deleteBatchRelation(relationEntityList);
 
     }
 }

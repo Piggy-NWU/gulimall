@@ -1,8 +1,6 @@
 package com.atguigu.gulimall.product.controller;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
 import com.atguigu.gulimall.product.service.AttrService;
@@ -39,14 +37,14 @@ public class AttrGroupController {
 
     @GetMapping("/{attrgroupId}/attr/relation")
     public R getRelation(@PathVariable("attrgroupId") Long attrGroupId) {
-       List<AttrResponseVo> result = attrService.queryRelationAttr(attrGroupId);
+        List<AttrResponseVo> result = attrService.queryRelationAttr(attrGroupId);
         return R.ok().put("data", result);
     }
 
 
     @PostMapping("/attr/relation/delete")
     public R deleteRelation(@RequestBody List<AttrGroupRelationVo> attrGroupRelationVoList) {
-         attrGroupService.deleteRelation(attrGroupRelationVoList);
+        attrGroupService.deleteRelation(attrGroupRelationVoList);
         return R.ok();
     }
 
