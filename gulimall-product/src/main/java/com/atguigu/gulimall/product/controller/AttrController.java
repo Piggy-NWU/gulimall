@@ -96,6 +96,7 @@ public class AttrController {
     @RequestMapping("/delete")
 //    @RequiresPermissions("product:attr:delete")
     public R delete(@RequestBody Long[] attrIds) {
+        // TODO: 2024/3/23  删除属性的时候，需要删除对应的group relation
         attrService.removeByIds(Arrays.asList(attrIds));
 
         return R.ok();
