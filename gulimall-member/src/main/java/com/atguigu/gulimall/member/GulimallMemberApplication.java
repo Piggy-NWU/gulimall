@@ -14,4 +14,5 @@ public class GulimallMemberApplication {
         SpringApplication.run(GulimallMemberApplication.class, args);
     }
 
+
 }
