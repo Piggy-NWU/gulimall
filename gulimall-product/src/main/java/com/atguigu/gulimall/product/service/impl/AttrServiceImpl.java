@@ -199,26 +199,15 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
      */
     @Override
     public PageUtils getNoRelationAttr(Map<String, Object> params, Long attrgroupId) {
+
         AttrGroupEntity attrGroupEntity = attrGroupDao.selectById(attrgroupId);
         Long catelogId = attrGroupEntity.getCatelogId();
-        QueryWrapper<AttrGroupEntity> queryWrapper = new QueryWrapper<AttrGroupEntity>()
-                .eq("catelog_id", catelogId);
-        List<AttrGroupEntity> attrGroupEntities = attrGroupDao.selectList(queryWrapper);
 
-        List<Long> otherAttrGroupId = attrGroupEntities.stream()
-                .map(item -> item.getAttrGroupId()).collect(Collectors.toList());
+        List<Long> attrIdOfOtherGroup = getAttrIdOfOtherGroupInSameCatelog(catelogId);
 
 
-        QueryWrapper<AttrAttrgroupRelationEntity> relationQueryWrapper =
-                new QueryWrapper<AttrAttrgroupRelationEntity>().in("attr_group_id", otherAttrGroupId);
-        List<AttrAttrgroupRelationEntity> attrAttrgroupRelationEntities = attrAttrgroupRelationDao.selectList(relationQueryWrapper);
-        List<Long> AttrIdOfOtherGroup = attrAttrgroupRelationEntities.stream()
-                .map(item -> item.getAttrId())
-                .collect(Collectors.toList());
-
-
-        QueryWrapper<AttrEntity> attrQueryWrapper = new QueryWrapper<AttrEntity>().eq("catelog_id", catelogId);
-        attrQueryWrapper = AttrIdOfOtherGroup.size() > 0 ? attrQueryWrapper.notIn("attr_id", AttrIdOfOtherGroup) : attrQueryWrapper;
+        QueryWrapper<AttrEntity> attrQueryWrapper = new QueryWrapper<AttrEntity>().eq("catelog_id", catelogId).eq("attr_type", 1);
+        attrQueryWrapper = attrIdOfOtherGroup.isEmpty() ? attrQueryWrapper : attrQueryWrapper.notIn("attr_id", attrIdOfOtherGroup);
 
         String key = (String) params.get("key");
         if (StringUtils.isNotEmpty(key)) {
@@ -228,5 +217,22 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         IPage<AttrEntity> page = this.page(new Query<AttrEntity>().getPage(params), attrQueryWrapper);
 
         return new PageUtils(page);
+    }
+
+    private List<Long> getAttrIdOfOtherGroupInSameCatelog(Long catelogId) {
+        QueryWrapper<AttrGroupEntity> queryWrapper = new QueryWrapper<AttrGroupEntity>()
+                .eq("catelog_id", catelogId);
+        List<AttrGroupEntity> attrGroupEntities = attrGroupDao.selectList(queryWrapper);
+
+        List<Long> otherAttrGroupId = attrGroupEntities.stream()
+                .map(AttrGroupEntity::getAttrGroupId).collect(Collectors.toList());
+
+        QueryWrapper<AttrAttrgroupRelationEntity> relationQueryWrapper =
+                new QueryWrapper<AttrAttrgroupRelationEntity>().in("attr_group_id", otherAttrGroupId);
+        List<AttrAttrgroupRelationEntity> attrGroupRelationEntities = attrAttrgroupRelationDao.selectList(relationQueryWrapper);
+        List<Long> attrIdOfOtherGroup = attrGroupRelationEntities.stream()
+                .map(AttrAttrgroupRelationEntity::getAttrId)
+                .collect(Collectors.toList());
+        return attrIdOfOtherGroup;
     }
 }
