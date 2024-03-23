@@ -3,6 +3,7 @@ package com.atguigu.gulimall.product.controller;
 import java.util.*;
 
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
+import com.atguigu.gulimall.product.service.AttrAttrgroupRelationService;
 import com.atguigu.gulimall.product.service.AttrService;
 import com.atguigu.gulimall.product.service.CategoryService;
 import com.atguigu.gulimall.product.vo.request.AttrGroupRelationVo;
@@ -34,6 +35,15 @@ public class AttrGroupController {
 
     @Autowired
     private AttrService attrService;
+
+    @Autowired
+    private AttrAttrgroupRelationService relationService;
+
+    @PostMapping("/attr/relation")
+    public R addRelation(@RequestBody List<AttrGroupRelationVo> attrGroupRelations) {
+        relationService.saveBatch(attrGroupRelations);
+        return R.ok();
+    }
 
     /**
      * 获取本分组可以关联的属性。

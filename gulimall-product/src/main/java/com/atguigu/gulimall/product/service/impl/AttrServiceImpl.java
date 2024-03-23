@@ -66,7 +66,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         this.save(attrEntity);
 
         // 基本属性才存储关联关系。 销售属性不涉及。
-        if (attr.getAttrType() == AttrEnum.ATTR_TYPE_BASE.getCode()) {
+        if (attr.getAttrType() == AttrEnum.ATTR_TYPE_BASE.getCode() && attr.getAttrGroupId() != null) {
             // 保存关联关系
             AttrAttrgroupRelationEntity attrAttrgroupRelationEntity = new AttrAttrgroupRelationEntity();
             attrAttrgroupRelationEntity.setAttrGroupId(attr.getAttrGroupId());
@@ -94,12 +94,9 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
             });
         }
 
-        IPage<AttrEntity> page = this.page(
-                new Query<AttrEntity>().getPage(params),
-                wrapper
-        );
-
+        IPage<AttrEntity> page = this.page(new Query<AttrEntity>().getPage(params), wrapper);
         List<AttrEntity> records = page.getRecords();
+
         List<AttrResponseVo> attrResponseVos = records.stream().map((record) -> {
             AttrResponseVo attrResponseVo = new AttrResponseVo();
             BeanUtils.copyProperties(record, attrResponseVo);
@@ -108,14 +105,12 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
             if (categoryEntity != null) {
                 attrResponseVo.setCatelogName(categoryEntity.getName());
             }
-
             // 设置分类名称。先查询属性和分组的关联关系，找到对应分组的id,然后再去分组表中找名字。
             if ("base".equalsIgnoreCase(type)) {
                 QueryWrapper<AttrAttrgroupRelationEntity> queryWrapper = new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrResponseVo.getAttrId());
-                // TODO: 2024/3/17  这块应该有意这么写的， 属性和属性分组是多对多关系，不过当前没有数据，这么写不会错。需要再确认下，按老师的意思，属性和属性分组是一对多。
-                AttrAttrgroupRelationEntity attrAttrgroupRelationEntitie = attrAttrgroupRelationDao.selectOne(queryWrapper);
-                if (attrAttrgroupRelationEntitie != null) {
-                    AttrGroupEntity attrGroupEntity = attrGroupDao.selectById(attrAttrgroupRelationEntitie.getAttrGroupId());
+                AttrAttrgroupRelationEntity attrGroupRelationEntity = attrAttrgroupRelationDao.selectOne(queryWrapper);
+                if (attrGroupRelationEntity != null && attrGroupRelationEntity.getAttrGroupId() != null) {
+                    AttrGroupEntity attrGroupEntity = attrGroupDao.selectById(attrGroupRelationEntity.getAttrGroupId());
                     attrResponseVo.setGroupName(attrGroupEntity.getAttrGroupName());
                 }
             }
