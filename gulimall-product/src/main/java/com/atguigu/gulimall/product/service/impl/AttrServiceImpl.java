@@ -77,26 +77,12 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
     // 代码太长了，不是好代码。 需要修改下
     @Override
-    public PageUtils queryBaseAttrPage(Map<String, Object> params, Long catelogId, String type) {
-        QueryWrapper<AttrEntity> wrapper = new QueryWrapper<>();
-        int attrType = "base".equalsIgnoreCase(type) ?
-                AttrEnum.ATTR_TYPE_BASE.getCode() : AttrEnum.ATTR_TYPE_SALE.getCode();
-        wrapper.eq("attr_type", attrType);
-        if (catelogId != 0) {
-            wrapper = wrapper.eq("catelog_id", catelogId);
-        }
-
-        // TODO: 2024/3/17   像这类代码，都存在null exception的风险，理应考虑好
-        String key = (String) params.get("key");
-        if (StringUtils.isNotEmpty(key)) {
-            wrapper = wrapper.and((wq) -> {
-                wq.eq("attr_id", key).or().like("attr_name", key);
-            });
-        }
+    public PageUtils queryAttrPage(Map<String, Object> params, Long catelogId, String type) {
+        QueryWrapper<AttrEntity> wrapper = buildAttrEntityQueryWrapper(params, catelogId, type);
 
         IPage<AttrEntity> page = this.page(new Query<AttrEntity>().getPage(params), wrapper);
-        List<AttrEntity> records = page.getRecords();
 
+        List<AttrEntity> records = page.getRecords();
         List<AttrResponseVo> attrResponseVos = records.stream().map((record) -> {
             AttrResponseVo attrResponseVo = new AttrResponseVo();
             BeanUtils.copyProperties(record, attrResponseVo);
@@ -120,6 +106,26 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         PageUtils pageUtils = new PageUtils(page);
         pageUtils.setList(attrResponseVos);
         return pageUtils;
+    }
+
+    private QueryWrapper<AttrEntity> buildAttrEntityQueryWrapper(Map<String, Object> params, Long catelogId, String type) {
+        QueryWrapper<AttrEntity> wrapper = new QueryWrapper<>();
+        int attrType = "base".equalsIgnoreCase(type) ?
+                AttrEnum.ATTR_TYPE_BASE.getCode() : AttrEnum.ATTR_TYPE_SALE.getCode();
+        wrapper.eq("attr_type", attrType);
+
+        if (catelogId != 0) {
+            wrapper = wrapper.eq("catelog_id", catelogId);
+        }
+
+        // TODO: 2024/3/17   像这类代码，都存在null exception的风险，理应考虑好
+        String key = (String) params.get("key");
+        if (StringUtils.isNotEmpty(key)) {
+            wrapper = wrapper.and((wq) -> {
+                wq.eq("attr_id", key).or().like("attr_name", key);
+            });
+        }
+        return wrapper;
     }
 
     @Override
