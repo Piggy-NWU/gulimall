@@ -8,12 +8,6 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Auto-generated: 2024-03-24 16:47:25
- *
- * @author bejson.com (i@bejson.com)
- * @website http://www.bejson.com/java2pojo/
- */
 @Data
 public class SpuSaveVo {
     private String spuName;
