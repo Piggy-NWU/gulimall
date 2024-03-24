@@ -1,20 +1,21 @@
 package com.atguigu.gulimall.product.controller;
 
-import java.util.*;
-
-//import org.apache.shiro.authz.annotation.RequiresPermissions;
+import com.atguigu.common.utils.PageUtils;
+import com.atguigu.common.utils.R;
+import com.atguigu.gulimall.product.entity.AttrGroupEntity;
 import com.atguigu.gulimall.product.service.AttrAttrgroupRelationService;
+import com.atguigu.gulimall.product.service.AttrGroupService;
 import com.atguigu.gulimall.product.service.AttrService;
 import com.atguigu.gulimall.product.service.CategoryService;
 import com.atguigu.gulimall.product.vo.request.AttrGroupRelationVo;
+import com.atguigu.gulimall.product.vo.response.AttrGroupWithAttrResVo;
 import com.atguigu.gulimall.product.vo.response.AttrResponseVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import com.atguigu.gulimall.product.entity.AttrGroupEntity;
-import com.atguigu.gulimall.product.service.AttrGroupService;
-import com.atguigu.common.utils.PageUtils;
-import com.atguigu.common.utils.R;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -38,6 +39,13 @@ public class AttrGroupController {
 
     @Autowired
     private AttrAttrgroupRelationService relationService;
+
+
+    @GetMapping("/{catelogId}/withattr")
+    public R getWithAttrs(@PathVariable("catelogId") Long catelogId) {
+        List<AttrGroupWithAttrResVo> entities = attrGroupService.getAttrGroupWithAttrs(catelogId);
+        return R.ok().put("data", entities);
+    }
 
     @PostMapping("/attr/relation")
     public R addRelation(@RequestBody List<AttrGroupRelationVo> attrGroupRelations) {
