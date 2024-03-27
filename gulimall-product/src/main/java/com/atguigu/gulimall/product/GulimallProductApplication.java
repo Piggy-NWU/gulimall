@@ -4,6 +4,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * 1、整合MyBatis-Plus
@@ -54,9 +55,14 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  *  2）、使用@ExceptionHandler标注方法可以处理的异常。
  */
 
+/**
+ * basePackages 一般用于不在一个包内，指定位置使用。
+ * EnableFeignClients会默认扫描子路径中是否存在FeignClient注解。
+ * */
 @EnableDiscoveryClient
 @MapperScan("com.atguigu.gulimall.product.dao")
 @SpringBootApplication
+@EnableFeignClients(basePackages = "com.atguigu.gulimall.product.feign")
 public class GulimallProductApplication {
     public static void main(String[] args) {
         SpringApplication.run(GulimallProductApplication.class, args);

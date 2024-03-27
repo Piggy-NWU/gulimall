@@ -1,10 +1,14 @@
 package com.atguigu.gulimall.product.service.impl;
 
+import com.atguigu.common.to.SkuReductionTo;
+import com.atguigu.common.to.SpuBoundTo;
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.Query;
+import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.product.dao.SpuInfoDao;
 import com.atguigu.gulimall.product.dao.SpuInfoDescDao;
 import com.atguigu.gulimall.product.entity.*;
+import com.atguigu.gulimall.product.feign.CouponFeignService;
 import com.atguigu.gulimall.product.service.*;
 import com.atguigu.gulimall.product.vo.request.spusave.*;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -42,6 +46,9 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     @Autowired
     SkuSaleAttrValueService skuSaleAttrValueService;
 
+    @Autowired
+    CouponFeignService couponFeignService;
+
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
         IPage<SpuInfoEntity> page = this.page(
@@ -66,7 +73,15 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         // 4、保存spu的规格参数; pms_product_attr_value
         productAttrValueService.saveBatchProductAttr(spuId, spuInfo.getBaseAttrs());
 
-        // 4.+ 保存spu的积分信息  sms_spu_bounds   如何跨服调用？here
+        // 4.+ 保存spu的积分信息  sms_spu_bounds   如何跨服调用？p90复习介绍了一下
+        Bounds bounds = spuInfo.getBounds();
+        SpuBoundTo spuBoundTo = new SpuBoundTo();
+        BeanUtils.copyProperties(bounds, spuBoundTo);
+        spuBoundTo.setSpuId(spuId);
+        R r = couponFeignService.saveSpuBounds(spuBoundTo);
+        if (r.getCode() != 0) {
+            log.error("远程保存spu积分信息失败");
+        }
         // 5、保存当前spu对应的所有sku信息
         List<Skus> skus = spuInfo.getSkus();
         // TODO: 2024/3/28  循环连接数据库肯定不行，这块熟悉后看看怎么优化
@@ -105,20 +120,23 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                 skuImagesService.saveBatch(skuImagesList);
                 // 5.3 sku的销售属性信息pms_sku_sale_attr_value
                 List<SkuSaleAttrValueEntity> skuSaleAttrList = sku.getAttr().stream().map(attr -> {
-                            SkuSaleAttrValueEntity skuSaleAttrValueEntity = new SkuSaleAttrValueEntity();
-                            BeanUtils.copyProperties(attr, skuSaleAttrValueEntity);
-                            skuSaleAttrValueEntity.setSkuId(skuId);
-                            return skuSaleAttrValueEntity;
-                        }).collect(Collectors.toList());
+                    SkuSaleAttrValueEntity skuSaleAttrValueEntity = new SkuSaleAttrValueEntity();
+                    BeanUtils.copyProperties(attr, skuSaleAttrValueEntity);
+                    skuSaleAttrValueEntity.setSkuId(skuId);
+                    return skuSaleAttrValueEntity;
+                }).collect(Collectors.toList());
                 skuSaleAttrValueService.saveBatch(skuSaleAttrList);
 
                 // 5.4 sku的优惠、满减等信息  sms_sku_ladder / sms_sku_full_reduction / sms_member_price /
-
-
+                SkuReductionTo skuReductionTo = new SkuReductionTo();
+                BeanUtils.copyProperties(sku, skuReductionTo);
+                skuReductionTo.setSkuId(skuId);
+                R r1 = couponFeignService.saveSkuReduction(skuReductionTo);
+                if (r1.getCode() != 0) {
+                    log.error("远程保存sku优惠信息失败");
+                }
             }
         }
-
-
     }
 
     private void saveImageDesc(Long spuId, SpuSaveVo spuInfo) {
