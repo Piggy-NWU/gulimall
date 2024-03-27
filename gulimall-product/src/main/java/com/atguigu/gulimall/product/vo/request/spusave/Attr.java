@@ -12,5 +12,4 @@ public class Attr {
     private String attrName;
     private String attrValue;
 
-
 }
