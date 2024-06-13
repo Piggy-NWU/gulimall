@@ -22,6 +22,7 @@ public class SpuInfoDescEntity implements Serializable {
 
 	/**
 	 * 商品id
+	 * type = IdType.INPUT  表示这个字段不是自增的，需要用户自己输入值.
 	 */
 	@TableId(type = IdType.INPUT)
 	private Long spuId;

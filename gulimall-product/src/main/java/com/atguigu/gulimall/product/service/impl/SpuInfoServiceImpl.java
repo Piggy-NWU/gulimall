@@ -74,7 +74,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         // 4、保存spu的规格参数; pms_product_attr_value
         productAttrValueService.saveBatchProductAttr(spuId, spuInfo.getBaseAttrs());
 
-        // 4.+ 保存spu的积分信息  sms_spu_bounds   如何跨服调用？p90复习介绍了一下
+        // 5. 保存spu的积分信息  sms_spu_bounds   如何跨服调用？p90复习介绍了一下
         Bounds bounds = spuInfo.getBounds();
         SpuBoundTo spuBoundTo = new SpuBoundTo();
         BeanUtils.copyProperties(bounds, spuBoundTo);
@@ -83,10 +83,10 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         if (r.getCode() != 0) {
             log.error("远程保存spu积分信息失败");
         }
-        // 5、保存当前spu对应的所有sku信息
+        // 6、保存当前spu对应的所有sku信息
         List<Skus> skus = spuInfo.getSkus();
         // TODO: 2024/3/28  循环连接数据库肯定不行，这块熟悉后看看怎么优化
-        // 5.1 sku的基本信息pms_sku_info
+        // 6.1 sku的基本信息pms_sku_info
         if (skus != null && skus.size() > 0) {
             for (Skus sku : skus) {
                 String defaultImg = "";
@@ -106,7 +106,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
                 Long skuId = skuInfoEntity.getSkuId();
 
-                // 5.2 sku的图片信息pms_sku_images
+                // 6.2 sku的图片信息pms_sku_images
                 // 没有图片路径的无需保存
                 List<SkuImagesEntity> skuImagesList = sku.getImages().stream()
                         .filter(image -> StringUtils.isNotEmpty(image.getImgUrl()))
@@ -119,7 +119,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                         }).collect(Collectors.toList());
                 System.out.println(skuImagesList);
                 skuImagesService.saveBatch(skuImagesList);
-                // 5.3 sku的销售属性信息pms_sku_sale_attr_value
+                // 6.3 sku的销售属性信息pms_sku_sale_attr_value
                 List<SkuSaleAttrValueEntity> skuSaleAttrList = sku.getAttr().stream().map(attr -> {
                     SkuSaleAttrValueEntity skuSaleAttrValueEntity = new SkuSaleAttrValueEntity();
                     BeanUtils.copyProperties(attr, skuSaleAttrValueEntity);
@@ -128,7 +128,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                 }).collect(Collectors.toList());
                 skuSaleAttrValueService.saveBatch(skuSaleAttrList);
 
-                // 5.4 sku的优惠、满减等信息  sms_sku_ladder / sms_sku_full_reduction / sms_member_price /
+                // 6.4 sku的优惠、满减等信息  sms_sku_ladder / sms_sku_full_reduction / sms_member_price /
                 SkuReductionTo skuReductionTo = new SkuReductionTo();
                 BeanUtils.copyProperties(sku, skuReductionTo);
                 skuReductionTo.setSkuId(skuId);
