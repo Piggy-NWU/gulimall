@@ -150,7 +150,6 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         spuInfoDescDao.insert(descEntity);
     }
 
-
     private Long saveBaseSpuInfo(SpuSaveVo spuInfo) {
         SpuInfoEntity spuInfoEntity = new SpuInfoEntity();
         BeanUtils.copyProperties(spuInfo, spuInfoEntity);
