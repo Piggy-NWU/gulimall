@@ -60,6 +60,10 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         return new PageUtils(page);
     }
 
+
+    /**
+     * 分布式事务回滚在高级篇继续讲解
+     * **/
     @Transactional
     @Override
     public void saveSpuInfo(SpuSaveVo spuInfo) {
