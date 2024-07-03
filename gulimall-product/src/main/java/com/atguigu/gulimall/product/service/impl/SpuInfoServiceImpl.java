@@ -146,6 +146,36 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         }
     }
 
+    @Override
+    public PageUtils queryPageByCondition(Map<String, Object> params) {
+        QueryWrapper<SpuInfoEntity> wrapper = new QueryWrapper<>();
+        if (StringUtils.isNotEmpty((String) params.get("key"))) {
+            wrapper.and((w) -> {
+                w.eq("id", params.get("key")).or().like("spu_name", params.get("key"));
+            });
+        }
+
+        if (StringUtils.isNotEmpty((String) params.get("status"))) {
+            wrapper.eq("publish_status", params.get("status"));
+        }
+
+        if (StringUtils.isNotEmpty((String) params.get("brandId"))) {
+            wrapper.eq("brand_id", params.get("brandId"));
+        }
+
+        String catelogId = (String) params.get("catelogId");
+        if (StringUtils.isNotEmpty(catelogId) && !"0".equalsIgnoreCase(catelogId)) {
+            wrapper.eq("catalog_id", catelogId);
+        }
+        // 分页查询
+        IPage<SpuInfoEntity> page = this.page(
+                new Query<SpuInfoEntity>().getPage(params),
+                wrapper
+        );
+        return new PageUtils(page);
+    }
+
+
     private void saveImageDesc(Long spuId, SpuSaveVo spuInfo) {
         List<String> decript = spuInfo.getDecript();
         SpuInfoDescEntity descEntity = new SpuInfoDescEntity();
