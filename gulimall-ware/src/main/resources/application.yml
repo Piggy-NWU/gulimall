@@ -20,5 +20,10 @@ mybatis-plus:
     db-config:
       id-type: auto
 
+# 配了以后就会打印debug日志，就能看到mysql的执行语句了
+logging:
+  level:
+    com.atguigu.gulimall: debug
+
 server:
   port: 11000
