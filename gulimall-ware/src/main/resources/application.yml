@@ -13,6 +13,8 @@ spring:
   # 给本服务命名，在注册中心(nacos)中就有对应的服务名了
   application:
     name: gulimall-ware
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
 
 mybatis-plus:
   mapperLocations: classpath:mapper/**/*.xml
@@ -27,3 +29,5 @@ logging:
 
 server:
   port: 11000
+  resources:
+    static-locations: classpath:/static/,classpath:/views/
