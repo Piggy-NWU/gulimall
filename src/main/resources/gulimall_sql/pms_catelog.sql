@@ -1,4 +1,4 @@
--- 和gulimall_pms是一起的，主要是给pms插入数据。 该表无需关注
+-- 和gulimall_pms是一起的，主要是给pms插入数据。 该表无需关注,已经内嵌在pms.sql中
 DROP TABLE IF EXISTS `pms_category`;
 
 CREATE TABLE `pms_category` (
