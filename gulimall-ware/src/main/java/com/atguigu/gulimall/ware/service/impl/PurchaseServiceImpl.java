@@ -29,7 +29,7 @@ public class PurchaseServiceImpl extends ServiceImpl<PurchaseDao, PurchaseEntity
     PurchaseDetailService detailService;
 
     @Autowired
-    PurchaseDetailServiceImpl purchaseDetailService;
+    PurchaseDetailService purchaseDetailService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -87,5 +87,36 @@ public class PurchaseServiceImpl extends ServiceImpl<PurchaseDao, PurchaseEntity
         purchaseEntity.setId(finalPurchaseId);
         purchaseEntity.setUpdateTime(new Date());
         this.updateById(purchaseEntity);
+    }
+
+    @Override
+    public void received(List<Long> ids) {
+        // 确认当前采购单是新建或者已分配状态。
+
+        QueryWrapper<PurchaseEntity> wrapper = new QueryWrapper<PurchaseEntity>().and(w -> w.eq("status", WareConstant.PurchaseStatusEnum.CREATED.getCode()).or().eq("status", WareConstant.PurchaseStatusEnum.ASSIGNED.getCode())).in("id", ids);
+
+
+        List<PurchaseEntity> purchaseEntities = this.list(wrapper);
+        // 改变采购单状态
+        for (PurchaseEntity purchaseEntity : purchaseEntities) {
+            purchaseEntity.setStatus(WareConstant.PurchaseStatusEnum.RECEIVE.getCode());
+            purchaseEntity.setUpdateTime(new Date());
+        }
+        this.updateBatchById(purchaseEntities);
+
+        // 改变采购项状态。 采购项就是采购需求
+        for (PurchaseEntity purchaseEntity : purchaseEntities) {
+            List<PurchaseDetailEntity> purchaseDetailEntities = purchaseDetailService.listDetailByPurchaseId(purchaseEntity.getId());
+            List<PurchaseDetailEntity> updateDetailEntities = purchaseDetailEntities.stream()
+                    .map(purchaseDetailEntity -> {
+                        PurchaseDetailEntity entity = new PurchaseDetailEntity();
+                        entity.setStatus(WareConstant.PurchaseDetailStatusEnum.BUYING.getCode());
+                        entity.setId(purchaseDetailEntity.getId());
+                        return entity;
+                    }).collect(Collectors.toList());
+
+            purchaseDetailService.updateBatchById(updateDetailEntities);
+        }
+
     }
 }
