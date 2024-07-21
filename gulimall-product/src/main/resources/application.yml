@@ -20,6 +20,7 @@ spring:
     name: gulimall-product
   # 返回的Data对象，这里配置以后，时间格式就会按要求的返回
   jackson:
+    time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
 
 mybatis-plus:

@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
-import com.atguigu.gulimall.ware.vo.MergeVo;
+import com.atguigu.gulimall.ware.vo.request.MergeVo;
+import com.atguigu.gulimall.ware.vo.request.PurchaseDoneVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,14 @@ import com.atguigu.common.utils.R;
 public class PurchaseController {
     @Autowired
     private PurchaseService purchaseService;
+
+
+    @PostMapping("/done")
+    public R finish(@RequestBody PurchaseDoneVo purchaseDoneVo) {
+        purchaseService.finish(purchaseDoneVo);
+        return R.ok();
+
+    }
 
     /**
      * 列表

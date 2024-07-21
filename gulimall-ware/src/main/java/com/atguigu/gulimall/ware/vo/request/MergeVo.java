@@ -1,4 +1,4 @@
-package com.atguigu.gulimall.ware.vo;
+package com.atguigu.gulimall.ware.vo.request;
 
 import java.util.List;
 
