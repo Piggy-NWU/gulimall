@@ -1,7 +1,10 @@
 package com.atguigu.gulimall.product.service.impl;
 
+import com.atguigu.common.constant.ProductConstant;
+import com.atguigu.common.to.SkuHasStockVo;
 import com.atguigu.common.to.SkuReductionTo;
 import com.atguigu.common.to.SpuBoundTo;
+import com.atguigu.common.to.es.SkuEsModel;
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.Query;
 import com.atguigu.common.utils.R;
@@ -9,6 +12,8 @@ import com.atguigu.gulimall.product.dao.SpuInfoDao;
 import com.atguigu.gulimall.product.dao.SpuInfoDescDao;
 import com.atguigu.gulimall.product.entity.*;
 import com.atguigu.gulimall.product.feign.CouponFeignService;
+import com.atguigu.gulimall.product.feign.SearchFeignService;
+import com.atguigu.gulimall.product.feign.WareFeignService;
 import com.atguigu.gulimall.product.service.*;
 import com.atguigu.gulimall.product.vo.request.spusave.*;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -21,9 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -50,6 +53,21 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     @Autowired
     CouponFeignService couponFeignService;
 
+    @Autowired
+    private AttrService attrService;
+
+    @Autowired
+    private WareFeignService wareFeignService;
+
+    @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
+    private BrandService brandService;
+
+    @Autowired
+    private SearchFeignService searchFeignService;
+
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
         IPage<SpuInfoEntity> page = this.page(
@@ -63,7 +81,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
     /**
      * 分布式事务回滚在高级篇继续讲解
-     * **/
+     **/
     @Transactional
     @Override
     public void saveSpuInfo(SpuSaveVo spuInfo) {
@@ -173,6 +191,77 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                 wrapper
         );
         return new PageUtils(page);
+    }
+
+    @Override
+    public void up(Long spuId) {
+        // 1 查出当前spu对应的所有sku信息，品牌的信息等
+        List<SkuInfoEntity> skuInfoEntities = skuInfoService.getSkusBySpuId(spuId);
+        // 查出当前spu所有可被检索的属性数据.
+        List<ProductAttrValueEntity> productAttrValueEntities = productAttrValueService.baseAttrListForSpu(spuId);
+        // 可被检索的属性id
+        List<Long> searchIds = getSearchIds(productAttrValueEntities);
+        Set<Long> ids = new HashSet<>(searchIds);
+        //2、封装该spu下可搜索的属性为对应的对象
+        List<SkuEsModel.Attr> searchAttrs = productAttrValueEntities.stream()
+                .filter(entity -> ids.contains(entity.getAttrId()))
+                .map(entity -> {
+                    SkuEsModel.Attr attr = new SkuEsModel.Attr();
+                    BeanUtils.copyProperties(entity, attr);
+                    return attr;
+                }).collect(Collectors.toList());
+
+        //TODO 发送远程调用，库存系统查询是否有库存.
+        // TODO: 2024/10/20  什么是远程调用？什么是rpc?这个要搞清楚
+        Map<Long, Boolean> stockMap = null;
+        try {
+            List<Long> skuIds = skuInfoEntities.stream().map(SkuInfoEntity::getSkuId)
+                    .collect(Collectors.toList());
+            List<SkuHasStockVo> skuHasStocks = wareFeignService.getSkuHasStocks(skuIds);
+            stockMap = skuHasStocks.stream().collect(Collectors.toMap(SkuHasStockVo::getSkuId, SkuHasStockVo::getHasStock));
+        } catch (Exception e) {
+            log.error("远程调用库存服务失败,原因{}", e);
+        }
+        Map<Long, Boolean> finalStockMap = stockMap;
+        // 封装每个sku的信息
+        List<SkuEsModel> skuEsModels = skuInfoEntities.stream().map(sku -> {
+            SkuEsModel skuEsModel = new SkuEsModel();
+            BeanUtils.copyProperties(sku, skuEsModel);
+            skuEsModel.setSkuPrice(sku.getPrice());
+            skuEsModel.setSkuImg(sku.getSkuDefaultImg());
+            // TODO: 2024/10/20   热度评分 目前都是0，后续加？
+            skuEsModel.setHotScore(0L);
+            // 填充品牌相关信息
+            BrandEntity brandEntity = brandService.getById(sku.getBrandId());
+            skuEsModel.setBrandName(brandEntity.getName());
+            skuEsModel.setBrandImg(brandEntity.getLogo());
+
+            // 填充分类的相关信息
+            CategoryEntity categoryEntity = categoryService.getById(sku.getCatalogId());
+            skuEsModel.setCatalogName(categoryEntity.getName());
+
+            // 设置可搜索属性
+            skuEsModel.setAttrs(searchAttrs);
+            //设置是否有库存
+            skuEsModel.setHasStock(finalStockMap == null ? false : finalStockMap.get(sku.getSkuId()));
+            return skuEsModel;
+        }).collect(Collectors.toList());
+
+        // 将数据发给es进行保存（上架）. gulimall-search
+        R r = searchFeignService.saveProductAsIndices(skuEsModels);
+        if (r.getCode() == 0) {
+            this.baseMapper.upSpuStatus(spuId, ProductConstant.ProductStatusEnum.SPU_UP.getCode());
+        } else {
+            log.error("商品远程es保存失败.");
+        }
+
+    }
+
+    private List<Long> getSearchIds(List<ProductAttrValueEntity> productAttrValueEntities) {
+        List<Long> attrIds = productAttrValueEntities.stream().map(ProductAttrValueEntity::getAttrId).collect(Collectors.toList());
+
+        List<Long> searchIds = attrService.selectSearchAttrIds(attrIds);
+        return searchIds;
     }
 
 

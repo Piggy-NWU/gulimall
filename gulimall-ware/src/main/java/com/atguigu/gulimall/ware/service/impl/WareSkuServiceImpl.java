@@ -1,5 +1,6 @@
 package com.atguigu.gulimall.ware.service.impl;
 
+import com.atguigu.common.to.SkuHasStockVo;
 import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.ware.feign.ProductFeignService;
 import org.apache.commons.lang.StringUtils;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -78,12 +80,12 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
             //TODO 还可以用什么办法让异常出现以后不回滚？高级
             try {
                 R info = productFeignService.getSkuInfo(skuId);
-                Map<String,Object> data = (Map<String, Object>) info.get("skuInfo");
+                Map<String, Object> data = (Map<String, Object>) info.get("skuInfo");
 
-                if(info.getCode() == 0){
+                if (info.getCode() == 0) {
                     wareSkuEntity.setSkuName((String) data.get("skuName"));
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
 
             }
             this.save(wareSkuEntity);
@@ -92,6 +94,18 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
             wareSkuDao.addStock(skuId, wareId, skuNum);
         }
 
+    }
+
+    @Override
+    public List<SkuHasStockVo> getSkuHasStocks(List<Long> ids) {
+        List<SkuHasStockVo> skuHasStockVos = ids.stream().map(id -> {
+            SkuHasStockVo skuHasStockVo = new SkuHasStockVo();
+            skuHasStockVo.setSkuId(id);
+            Integer count = baseMapper.getTotalStock(id);
+            skuHasStockVo.setHasStock(count == null ? false : count > 0);
+            return skuHasStockVo;
+        }).collect(Collectors.toList());
+        return skuHasStockVos;
     }
 
 }
