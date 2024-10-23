@@ -217,6 +217,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         try {
             List<Long> skuIds = skuInfoEntities.stream().map(SkuInfoEntity::getSkuId)
                     .collect(Collectors.toList());
+            // TODO: 2024/10/24  目前这种做法肯定不合规范，需要利用typeReference去反构数据才对。
             List<SkuHasStockVo> skuHasStocks = wareFeignService.getSkuHasStocks(skuIds);
             stockMap = skuHasStocks.stream().collect(Collectors.toMap(SkuHasStockVo::getSkuId, SkuHasStockVo::getHasStock));
         } catch (Exception e) {
@@ -253,6 +254,8 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
             this.baseMapper.upSpuStatus(spuId, ProductConstant.ProductStatusEnum.SPU_UP.getCode());
         } else {
             log.error("商品远程es保存失败.");
+
+            //TODO 7、重复调用？接口幂等性:重试机制
         }
 
     }

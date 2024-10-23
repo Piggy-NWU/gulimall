@@ -7,11 +7,7 @@ import java.util.Map;
 //import org.apache.shiro.authz.annotation.RequiresPermissions;
 import com.atguigu.common.to.SkuHasStockVo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.atguigu.gulimall.ware.entity.WareSkuEntity;
 import com.atguigu.gulimall.ware.service.WareSkuService;
@@ -89,8 +85,10 @@ public class WareSkuController {
     }
 
 
-    @RequestMapping("/getSkuHasStocks")
+    // 这块是抄的别人的。 作为接口来说，这样定义并不好，仅仅传输了数据，但是丢失了很多有用的信息，比如code和msg。
+    @PostMapping(value = "/hasStocks")
     public List<SkuHasStockVo> getSkuHasStocks(@RequestBody List<Long> ids) {
+
         return wareSkuService.getSkuHasStocks(ids);
     }
 
