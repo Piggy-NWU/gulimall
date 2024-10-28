@@ -12,7 +12,7 @@ spring:
         server-addr: localhost:8848
     alicloud:
       access-key: LTAI5tPYUXLdjS36fqR5fMPp
-      secret-key: 2o387fEHIpSsBjqcVz36WaI9RElEo6
+      secret-key: 2o387fEHIpSsBjqcVz36WaI9¢RElEo6
       oss:
         endpoint: oss-cn-beijing.aliyuncs.com
   # 给本服务命名，在注册中心(nacos)中就有对应的服务名了.但是这里也得有，我记得不配也会出错。
@@ -22,6 +22,10 @@ spring:
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
+  thymeleaf:
+    cache: false
+  mvc:
+    static-path-pattern: /static/**
 
 mybatis-plus:
   mapperLocations: classpath:mapper/**/*.xml

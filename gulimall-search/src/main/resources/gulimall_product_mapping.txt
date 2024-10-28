@@ -1,5 +1,6 @@
 // gulimall_product_mapping与product-mapping不同：["index": false,"doc_values": false]，聚合查询需要两者为true，删除即可。
 
+// 一个是p178的 一个是p134的。
 PUT gulimall_product
 {
   "mappings": {
