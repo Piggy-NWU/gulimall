@@ -24,6 +24,7 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
   thymeleaf:
     cache: false
+
   mvc:
     static-path-pattern: /static/**
 

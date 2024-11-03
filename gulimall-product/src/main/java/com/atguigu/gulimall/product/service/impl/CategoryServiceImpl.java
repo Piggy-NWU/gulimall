@@ -88,6 +88,14 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     }
 
     @Override
+    public List<CategoryEntity> getLevel1Catagories() {
+        //        long start = System.currentTimeMillis();
+        List<CategoryEntity> parent_cid = this.list(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
+//        System.out.println("查询一级菜单时间:"+(System.currentTimeMillis()-start));
+        return parent_cid;
+    }
+
+    @Override
     public Long[] findCatelogPath(Long catelogId) {
         List<Long> paths = findParentPath(catelogId);
         return paths.toArray(new Long[paths.size()]);
